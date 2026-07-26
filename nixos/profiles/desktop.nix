@@ -15,8 +15,16 @@
 
   hardware.graphics.enable = true;
 
-  # Login manager
-  services.displayManager.sddm.enable = true;
+  # Login manager - SDDM with Catppuccin Mocha theme
+  services.displayManager.sddm = {
+    enable = true;
+    theme = "catppuccin-mocha";
+  };
+
+  # Catppuccin SDDM theme
+  environment.systemPackages = with pkgs; [
+    catppuccin-sddm
+  ];
 
   # Enable the COSMIC login manager / desktop environment
   # services.displayManager.cosmic-greeter.enable = true;
