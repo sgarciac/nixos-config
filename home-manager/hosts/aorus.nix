@@ -5,6 +5,9 @@
 { ... }:
 
 {
+  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+  home.stateVersion = "26.05";
+
   # Unchanged from what the shared module used to set: let Hyprland pick the
   # EDID-preferred mode and auto-place/auto-scale. This is the catch-all rule
   # (empty output = every monitor).

@@ -68,6 +68,5 @@
     };
   };
 
-  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
-  home.stateVersion = "25.11";
+  # home.stateVersion is set per-host in home-manager/hosts/<name>.nix
 }

@@ -2,6 +2,9 @@
 { ... }:
 
 {
+  # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
+  home.stateVersion = "26.05";
+
   # 1920x1080 at scale 1.
   #
   # Two things were plausibly making this look "too low", and this addresses

@@ -29,6 +29,9 @@
   #   networks."my-ssid".pskRaw = "ext:psk_home";
   # };
 
+  # Per-host Home Manager config (stateVersion, etc.)
+  home-manager.users.sergio.imports = [ ../../home-manager/hosts/server.nix ];
+
   # REQUIRED BEFORE FIRST SWITCH, if this machine is remote.
   # profiles/server.nix turns off password and keyboard-interactive SSH login, so
   # without a key here you cannot get back in. Uncomment and add your public key:
