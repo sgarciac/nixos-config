@@ -58,6 +58,7 @@
     wget
     pciutils
     git
+    tree
   ];
 
   # Home Manager runs as part of nixos-rebuild rather than standalone. Each
