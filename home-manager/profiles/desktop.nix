@@ -73,6 +73,19 @@ in
       package = pkgs.adwaita-icon-theme;
       name = "Adwaita";
     };
+
+    # Set explicitly to silence the state-version deprecation warning. The
+    # default is gated on stateVersion >= 26.05, where it becomes null.
+    #
+    # Adopting null on purpose: gtk4.theme works by @import-ing the theme's
+    # gtk-4.0/gtk.css into ~/.config/gtk-4.0/gtk.css, which the module itself
+    # flags as an unsupported workaround that "may cause issues with some apps"
+    # — and Adwaita-dark may not even ship that file. GTK4/libadwaita apps
+    # follow the dark preference below instead, which is the supported route.
+    gtk4 = {
+      theme = null;
+      extraConfig.gtk-application-prefer-dark-theme = true;
+    };
   };
 
   # Makes Qt apps — kate and dolphin here — follow the GTK theme above instead of
@@ -111,6 +124,16 @@ in
 
   programs.firefox = {
     enable = true;
+
+    # Set explicitly to silence the state-version deprecation warning without
+    # touching home.stateVersion. The default is gated on stateVersion >= 26.05,
+    # where it becomes "${config.xdg.configHome}/mozilla/firefox".
+    #
+    # Keeping the legacy path means your existing profile — bookmarks, history,
+    # logins — is found where it already is. To adopt the XDG path later, move the
+    # directory FIRST and then change this:
+    #   mv ~/.mozilla/firefox ~/.config/mozilla/firefox && rmdir ~/.mozilla
+    configPath = ".mozilla/firefox";
 
     # Enterprise policies apply to *every* profile, which is exactly what we want
     # here: no `profiles.*` is declared, because declaring one would rewrite
