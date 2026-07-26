@@ -93,7 +93,11 @@ in
             function()
               hl.exec_cmd(${builtins.toJSON terminal})
               hl.exec_cmd("nm-applet")
-              hl.exec_cmd("waybar & hyprpaper & firefox")
+              -- waybar and hyprpaper are NOT started here. Both are systemd user
+              -- services managed by home-manager (programs.waybar.systemd.enable
+              -- and services.hyprpaper), already bound to the session target.
+              -- Launching them here as well would give you two of each.
+              hl.exec_cmd("firefox")
             end'')
         ];
       };

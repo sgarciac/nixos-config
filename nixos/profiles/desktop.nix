@@ -31,7 +31,10 @@
   programs.hyprland.withUWSM = true;
   programs.hyprland.xwayland.enable = true;
 
-  programs.waybar.enable = true;
+  # NOTE: waybar is deliberately NOT enabled here. It is managed entirely by
+  # home-manager (programs.waybar in ../../home-manager/profiles/desktop.nix) so
+  # that one place owns the package, the config and the systemd user service.
+  # This NixOS module would add a second systemd unit for it.
   services.hypridle.enable = true;
 
   # Enable sound with pipewire.
@@ -72,12 +75,6 @@
 
     bibata-cursors
     nwg-look
-  ];
-
-  # Merges with the list in ../users/sergio.nix
-  users.users."sergio".packages = with pkgs; [
-    kdePackages.kate
-    #  thunderbird
   ];
 
   home-manager.users.sergio.imports = [ ../../home-manager/profiles/desktop.nix ];
