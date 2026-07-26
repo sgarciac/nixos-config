@@ -11,7 +11,21 @@
 { ... }:
 
 {
-  programs.git.enable = true;
+  # Writes $XDG_CONFIG_HOME/git/config (~/.config/git/config).
+  #
+  # Note the option names changed in home-manager 26.05: userName, userEmail,
+  # aliases and extraConfig are now renamed into `settings`, which mirrors
+  # git-config(1) section names directly. The old names still work but warn.
+  programs.git = {
+    enable = true;
+
+    settings = {
+      user = {
+        name = "sergio garcia";
+        email = "sergio.garcia@gmail.com";
+      };
+    };
+  };
 
   # https://nixos.wiki/wiki/FAQ/When_do_I_update_stateVersion
   home.stateVersion = "25.11";
