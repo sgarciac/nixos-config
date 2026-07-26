@@ -36,17 +36,18 @@
   programs._1password.enable = true;
 
   # zsh
-  programs.zsh = {
-    enable = true;
-    ohMyZsh = {
-      enable = true;
-      plugins = [
-        "git"
-        "autojump"
-      ];
-      theme = "robbyrussell";
-    };
-  };
+  #
+  # This stays at the NixOS level even though the shell *configuration* now lives
+  # in home-manager: it is what writes /etc/zshenv, /etc/zprofile and /etc/zshrc
+  # and adds zsh to environment.shells, which a zsh login shell needs
+  # (users.users.sergio.shell in ../users/sergio.nix).
+  #
+  # ohMyZsh is deliberately NOT enabled here — see
+  # ../../home-manager/profiles/base.nix. This module would inject oh-my-zsh into
+  # /etc/zshrc while home-manager injects it into ~/.zshrc, and both `source
+  # $ZSH/oh-my-zsh.sh`, so enabling both loads oh-my-zsh twice per shell.
+  programs.zsh.enable = true;
+
   programs.starship.enable = true;
 
   # List packages installed in system profile. To search, run:
