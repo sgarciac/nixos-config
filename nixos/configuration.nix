@@ -78,8 +78,12 @@
   #services.desktopManager.cosmic.enable = true;
 
   #hyprland
-  
+  # this needs to be defined here and not in home manager
+ 
   programs.hyprland.enable = true; # enable Hyprland
+  programs.hyprland.withUWSM = true;
+  programs.hyprland.xwayland.enable = true;
+
   # programs.waybar.enable = true;
   # services.hypridle.enable = true;
 
