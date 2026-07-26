@@ -64,6 +64,19 @@
   # home.pointerCursor, and nwg-look is gone entirely — it was a GUI for editing
   # GTK settings by hand, which the `gtk` module now does declaratively.
 
+  # Binary cache for the llm-agents.nix packages installed in the home desktop
+  # profile. Without this every agent is built from source against their pinned
+  # nixpkgs-unstable, which is slow and pointless — they push daily CI builds.
+  #
+  # `extra-*` rather than plain `substituters`/`trusted-public-keys`, which would
+  # replace cache.nixos.org instead of appending to it.
+  nix.settings = {
+    extra-substituters = [ "https://cache.numtide.com" ];
+    extra-trusted-public-keys = [
+      "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+    ];
+  };
+
   programs._1password-gui = {
     enable = true;
     # Certain features, including CLI integration and system authentication support,

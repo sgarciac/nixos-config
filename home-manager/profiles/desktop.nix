@@ -1,7 +1,21 @@
 # User config for graphical machines. Pulled in by nixos/profiles/desktop.nix.
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 let
+  # github:numtide/llm-agents.nix — 145 packaged LLM coding agents.
+  #
+  # Taken from the flake's own `packages` output, which is built against ITS
+  # pinned nixpkgs-unstable, NOT our nixpkgs. That is deliberate and is what
+  # upstream recommends: the flake is only tested against that pin, and their
+  # README states that pointing it at a stable branch like ours "will break
+  # eventually". The cost is a second nixpkgs evaluation; the benefit is that
+  # the numtide binary cache (configured in nixos/profiles/desktop.nix) actually
+  # hits, instead of rebuilding everything locally.
+  #
+  # This is also why there is no `llm-agents.inputs.nixpkgs.follows` in
+  # flake.nix, and why overlays.shared-nixpkgs is not used.
+  llmAgents = inputs.llm-agents.packages.${pkgs.stdenv.hostPlatform.system};
+
   # Comes straight from the nix store, so there is no local file to keep in sync
   # and both machines get the same image. `gnomeFilePath` is a passthru on the
   # wallpaper derivation that gives the full path to the png, which saves us
@@ -32,6 +46,14 @@ in
 
     kdePackages.kate
     #  thunderbird
+  ]
+  ++ [
+    # LLM coding agents. Add more by name — `nix flake show github:numtide/llm-agents.nix`
+    # lists all 145, or see the tables in their README. Notable ones:
+    # opencode, codex, gemini-cli, qwen-code, crush, goose-cli, copilot-cli,
+    # ccusage (token spend), ccstatusline (statusline for claude-code).
+    llmAgents.claude-code
+    llmAgents.pi
   ];
 
   programs.emacs.enable = true;
