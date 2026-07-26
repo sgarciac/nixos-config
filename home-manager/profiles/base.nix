@@ -8,7 +8,7 @@
 #   - nixpkgs.* must NOT be set here. useGlobalPkgs = true means those options
 #     are never even imported, so setting one is an unknown-option error.
 #     Configure nixpkgs at the NixOS level instead.
-{ ... }:
+{ pkgs, ... }:
 
 {
   # Shell config for every host, headless included. Writes ~/.zshrc.
@@ -21,13 +21,33 @@
 
     oh-my-zsh = {
       enable = true;
+
+      # No `theme` set. starship (below) exports PROMPT after oh-my-zsh runs, so
+      # an oh-my-zsh theme has no visible effect — the old
+      # `theme = "robbyrussell"` was never actually rendering. If you ever drop
+      # starship, set a theme here again.
       plugins = [
         "git"
-        "autojump"
+        # "autojump" is deliberately absent: oh-my-zsh's autojump plugin looks
+        # for the shell hook in FHS paths that don't exist on NixOS, so it
+        # silently did nothing. programs.autojump below wires it up properly.
       ];
-      theme = "robbyrussell";
     };
   };
+
+  programs.starship.enable = true;
+
+  # CLI tools. These modules install the package *and* own its config, which is
+  # why they replace the plain environment.systemPackages entries they came from.
+  programs.bat.enable = true;
+  programs.lsd.enable = true;
+  programs.btop.enable = true;
+  programs.ripgrep.enable = true;
+  programs.autojump.enable = true;
+
+  home.packages = with pkgs; [
+    sbcl # no home-manager module, and nothing to configure
+  ];
 
   # Writes $XDG_CONFIG_HOME/git/config (~/.config/git/config).
   #

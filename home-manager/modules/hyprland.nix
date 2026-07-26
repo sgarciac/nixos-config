@@ -10,7 +10,8 @@ let
   # Set programs that you use
   terminal = "kitty";
   fileManager = "dolphin";
-  menu = "hyprlauncher";
+  # Configured (and installed) by programs.fuzzel in ../profiles/desktop.nix
+  menu = "fuzzel";
 
   # Sets "Windows" key as main modifier
   mainMod = "SUPER";
@@ -92,11 +93,11 @@ in
           (mkLuaInline ''
             function()
               hl.exec_cmd(${builtins.toJSON terminal})
-              hl.exec_cmd("nm-applet")
-              -- waybar and hyprpaper are NOT started here. Both are systemd user
-              -- services managed by home-manager (programs.waybar.systemd.enable
-              -- and services.hyprpaper), already bound to the session target.
-              -- Launching them here as well would give you two of each.
+              -- waybar, hyprpaper and nm-applet are NOT started here. All three
+              -- are systemd user services managed by home-manager
+              -- (programs.waybar.systemd.enable, services.hyprpaper,
+              -- services.network-manager-applet), already bound to the session
+              -- target. Launching them here too would give you two of each.
               hl.exec_cmd("firefox")
             end'')
         ];
@@ -107,6 +108,11 @@ in
       #-------------------------------
 
       # See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Environment-variables/
+      #
+      # These stay here even though home.pointerCursor (in profiles/desktop.nix)
+      # also configures the cursor: Hyprland reads its own env block rather than
+      # the session variables, so the compositor's own cursor needs this. Keep the
+      # theme name and size in sync with home.pointerCursor.
       env = [
         {
           _args = [

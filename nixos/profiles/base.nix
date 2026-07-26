@@ -48,22 +48,16 @@
   # $ZSH/oh-my-zsh.sh`, so enabling both loads oh-my-zsh twice per shell.
   programs.zsh.enable = true;
 
-  programs.starship.enable = true;
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
+  # Kept at the system level on purpose: these are the tools you need as root.
+  # Moving them to home.packages would leave `sudo` without an editor or git.
+  # The user-facing CLI tools (bat, lsd, btop, ripgrep, autojump) moved to
+  # ../../home-manager/profiles/base.nix, where they get configured as well as
+  # installed. starship moved there too.
   environment.systemPackages = with pkgs; [
     vim # Do not forget to add an editor! The Nano editor is also installed by default.
-    ripgrep
     wget
     pciutils
     git
-    bat
-    stow
-    lsd
-    autojump
-    sbcl
-    btop
   ];
 
   # Home Manager runs as part of nixos-rebuild rather than standalone. Each

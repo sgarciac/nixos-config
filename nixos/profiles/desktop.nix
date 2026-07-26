@@ -31,11 +31,12 @@
   programs.hyprland.withUWSM = true;
   programs.hyprland.xwayland.enable = true;
 
-  # NOTE: waybar is deliberately NOT enabled here. It is managed entirely by
-  # home-manager (programs.waybar in ../../home-manager/profiles/desktop.nix) so
-  # that one place owns the package, the config and the systemd user service.
-  # This NixOS module would add a second systemd unit for it.
-  services.hypridle.enable = true;
+  # NOTE: waybar and hypridle are deliberately NOT enabled here. Both are managed
+  # entirely by home-manager (../../home-manager/profiles/desktop.nix) so that one
+  # place owns the package, the config and the systemd user service. Each of these
+  # NixOS modules binds its own unit to graphical-session.target, so enabling them
+  # here as well gives you two of each — and neither can write the per-user config
+  # file that hypridle needs in order to do anything.
 
   # Enable sound with pipewire.
   services.pulseaudio.enable = false;
@@ -58,8 +59,10 @@
     nerd-fonts.droid-sans-mono
   ];
 
-  # Install firefox.
-  programs.firefox.enable = true;
+  # firefox moved to home-manager so the 1Password extension can be declared.
+  # emacs moved to programs.emacs there. bibata-cursors is now pulled in by
+  # home.pointerCursor, and nwg-look is gone entirely — it was a GUI for editing
+  # GTK settings by hand, which the `gtk` module now does declaratively.
 
   programs._1password-gui = {
     enable = true;
@@ -67,15 +70,6 @@
     # require enabling PolKit integration on some desktop environments (e.g. Plasma).
     polkitPolicyOwners = [ "sergio" ];
   };
-
-  environment.systemPackages = with pkgs; [
-    # Builds against X/GTK, so it stays out of the base profile. Use emacs-nox
-    # if you ever want it on a headless host.
-    emacs
-
-    bibata-cursors
-    nwg-look
-  ];
 
   home-manager.users.sergio.imports = [ ../../home-manager/profiles/desktop.nix ];
 }
