@@ -71,13 +71,12 @@ in
       #---- MONITORS ----
       #------------------
 
+      # Monitors are declared per host, NOT here — see home-manager/hosts/.
+      # This module is shared by aorus and thinkpad, which need different modes
+      # and scales, and `settings.monitor` set in two places would collide rather
+      # than override.
+      #
       # See https://wiki.hypr.land/Configuring/Basics/Monitors/
-      monitor = {
-        output = "";
-        mode = "preferred";
-        position = "auto";
-        scale = "auto";
-      };
 
       #-------------------
       #---- AUTOSTART ----
