@@ -36,6 +36,9 @@
   };
 
   programs.starship.enable = true;
+  programs.starship.settings = {
+    scan_timeout = 200;
+  };
 
   # CLI tools. These modules install the package *and* own its config, which is
   # why they replace the plain environment.systemPackages entries they came from.
