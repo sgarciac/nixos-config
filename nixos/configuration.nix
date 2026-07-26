@@ -78,9 +78,10 @@
   #services.desktopManager.cosmic.enable = true;
 
   #hyprland
-  programs.hyprland.enable = true; # enable Hyprland
-  programs.waybar.enable = true;
-  services.hypridle.enable = true;
+  
+  # programs.hyprland.enable = true; # enable Hyprland
+  # programs.waybar.enable = true;
+  # services.hypridle.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
@@ -139,8 +140,8 @@
     lsd
     autojump
     sbcl
-    kitty
-    hyprlauncher
+    # kitty
+    # hyprlauncher
     btop
     bibata-cursors
     nwg-look
