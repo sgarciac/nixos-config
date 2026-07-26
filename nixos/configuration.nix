@@ -84,8 +84,8 @@
   programs.hyprland.withUWSM = true;
   programs.hyprland.xwayland.enable = true;
 
-  # programs.waybar.enable = true;
-  # services.hypridle.enable = true;
+  programs.waybar.enable = true;
+  services.hypridle.enable = true;
 
   # Configure keymap in X11
   services.xserver.xkb = {
