@@ -11,35 +11,27 @@
     llm-agents.url = "github:numtide/llm-agents.nix";
   };
 
-  outputs = {
-    self,
-    nixpkgs,
-    home-manager,
-    ...
-  } @ inputs: let
-  in {
-    # NixOS configuration entrypoint
-    # Available through 'nixos-rebuild --flake .#your-hostname'
-    nixosConfigurations = {
-      # FIXME replace with your hostname
-      desktop = nixpkgs.lib.nixosSystem {
-        specialArgs = {inherit inputs;};
-        # > Our main nixos configuration file <
-        modules = [./nixos/configuration.nix];
+  outputs =
+    { nixpkgs, ... }@inputs:
+    let
+      # Each hosts/<name>/ directory is a self-contained NixOS module: it imports
+      # its own hardware-configuration.nix plus whichever profiles it needs from
+      # nixos/profiles/ and nixos/hardware/. Home Manager comes along via
+      # nixos/profiles/base.nix, so there is no separate homeConfigurations
+      # output and no separate `home-manager switch` step.
+      mkHost =
+        hostPath:
+        nixpkgs.lib.nixosSystem {
+          specialArgs = { inherit inputs; };
+          modules = [ hostPath ];
+        };
+    in
+    {
+      # Rebuild with: sudo nixos-rebuild switch --flake .#<hostname>
+      nixosConfigurations = {
+        aorus = mkHost ./hosts/aorus;
+        thinkpad = mkHost ./hosts/thinkpad;
+        server = mkHost ./hosts/server;
       };
     };
-
-    # Standalone home-manager configuration entrypoint
-    # Available through 'home-manager --flake .#your-username@your-hostname'
-    homeConfigurations = {
-      # FIXME replace with your username@hostname
-      "sergio@desktop" = home-manager.lib.homeManagerConfiguration {
-        # Home-manager requires 'pkgs' instance
-        pkgs = nixpkgs.legacyPackages.x86_64-linux; # FIXME replace x86_64-linux with your architecture 
-        extraSpecialArgs = {inherit inputs;};
-        # > Our main home-manager configuration file <
-        modules = [./home-manager/home.nix];
-      };
-    };
-  };
 }
