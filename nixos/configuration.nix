@@ -79,7 +79,7 @@
 
   #hyprland
   
-  # programs.hyprland.enable = true; # enable Hyprland
+  programs.hyprland.enable = true; # enable Hyprland
   # programs.waybar.enable = true;
   # services.hypridle.enable = true;
 
