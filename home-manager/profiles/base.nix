@@ -50,6 +50,7 @@
 
   home.packages = with pkgs; [
     sbcl # no home-manager module, and nothing to configure
+    gh # GitHub CLI
   ];
 
   # Writes $XDG_CONFIG_HOME/git/config (~/.config/git/config).

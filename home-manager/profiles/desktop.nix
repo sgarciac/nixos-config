@@ -26,6 +26,8 @@ in
   imports = [
     # Enables wayland.windowManager.hyprland and generates hyprland.lua
     ../modules/hyprland.nix
+    # Emacs with packages - user manages .emacs.d, nix provides packages
+    ../modules/emacs.nix
   ];
 
   #-------------------------------------------------------------------
@@ -56,7 +58,7 @@ in
     llmAgents.pi
   ];
 
-  programs.emacs.enable = true;
+
 
   #-------------------------------------------------------------------
   # Theming
