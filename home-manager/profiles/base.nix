@@ -19,6 +19,11 @@
   programs.zsh = {
     enable = true;
 
+    # Aliases for pretty CLI tools
+    initContent = ''
+      alias cat='bat'
+    '';
+
     oh-my-zsh = {
       enable = true;
 
