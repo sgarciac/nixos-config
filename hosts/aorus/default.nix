@@ -8,6 +8,7 @@
 
     ../../nixos/profiles/base.nix
     ../../nixos/profiles/desktop.nix
+    ../../nixos/profiles/development.nix
     ../../nixos/hardware/nvidia.nix
   ];
 
