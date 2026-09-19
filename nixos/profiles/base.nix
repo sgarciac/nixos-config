@@ -32,6 +32,9 @@
   # tailscale
   services.tailscale.enable = true;
 
+  # Docker
+  virtualisation.docker.enable = true;
+
   # 1password CLI. The GUI lives in profiles/desktop.nix.
   programs._1password.enable = true;
 
@@ -59,6 +62,7 @@
     pciutils
     git
     tree
+    docker
   ];
 
   # Home Manager runs as part of nixos-rebuild rather than standalone. Each
