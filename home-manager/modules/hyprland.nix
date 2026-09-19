@@ -409,10 +409,6 @@ in
         (mkLockedBind "XF86AudioPause" (exec "playerctl play-pause"))
         (mkLockedBind "XF86AudioPlay" (exec "playerctl play-pause"))
         (mkLockedBind "XF86AudioPrev" (exec "playerctl previous"))
-
-        # Clipboard: copy/paste with SUPER + Shift
-        (mkBind "${mainMod} + SHIFT + C" ''hyprclipboard -o | wl-copy'')
-        (mkBind "${mainMod} + SHIFT + V" ''wl-paste | hyprclipboard -i'')
       ];
 
       #---------------

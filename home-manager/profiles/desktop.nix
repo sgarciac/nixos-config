@@ -45,7 +45,6 @@ in
 
     brightnessctl # XF86MonBrightness{Up,Down}
     playerctl # XF86Audio{Next,Prev,Play,Pause}
-    wl-clipboard # wl-copy, wl-paste for Wayland clipboard
 
     kdePackages.kate
     #  thunderbird
