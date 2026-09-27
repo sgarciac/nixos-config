@@ -339,58 +339,21 @@ in
     enable = false;
   };
 
-  # Screen locker, driven by hypridle below. `path = "screenshot"` blurs whatever
-  # was on screen rather than needing a separate lock image.
+  # hyprlock is disabled - Noctalia provides its own lock screen.
+  # We keep hypridle for idle detection but point it to Noctalia's lock.
   programs.hyprlock = {
-    enable = true;
-
-    settings = {
-      general.hide_cursor = true;
-
-      background = [
-        {
-          monitor = "";
-          path = "screenshot";
-          blur_passes = 3;
-        }
-      ];
-
-      input-field = [
-        {
-          monitor = "";
-          size = "250, 50";
-          position = "0, -80";
-          outline_thickness = 2;
-          dots_center = true;
-          fade_on_empty = false;
-          placeholder_text = "<i>Password...</i>";
-        }
-      ];
-
-      label = [
-        {
-          monitor = "";
-          text = "$TIME";
-          font_size = 64;
-          position = "0, 80";
-          halign = "center";
-          valign = "center";
-        }
-      ];
-    };
+    enable = false;
   };
 
-  # Idle daemon. This is the half that was missing before: the NixOS module was
-  # running hypridle with no config file at all, so it did nothing.
-  #
-  # `loginctl lock-session` rather than calling hyprlock directly, so that
-  # anything else asking systemd to lock the session takes the same path.
+  # Idle daemon using Noctalia's session lock instead of hyprlock.
+  # Noctalia handles its own lock screen when called via IPC.
   services.hypridle = {
     enable = true;
 
     settings = {
       general = {
-        lock_cmd = "pidof hyprlock || hyprlock";
+        # Lock using Noctalia's lock command
+        lock_cmd = "noctalia msg session lock";
         before_sleep_cmd = "loginctl lock-session";
         after_sleep_cmd = "hyprctl dispatch dpms on";
       };
@@ -398,7 +361,7 @@ in
       listener = [
         {
           timeout = 300; # 5 min -> lock
-          on-timeout = "loginctl lock-session";
+          on-timeout = "noctalia msg session lock";
         }
         {
           timeout = 330; # 5.5 min -> screen off
