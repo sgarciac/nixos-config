@@ -1,8 +1,13 @@
 # Graphical machines: Wayland/Hyprland session, audio, fonts and GUI apps.
 # Hardware-specific graphics drivers live in ../hardware/ instead.
-{ pkgs, ... }:
+{ inputs, pkgs, ... }:
 
 {
+  imports = [
+    inputs.noctalia.nixosModules.default
+    inputs.noctalia-greeter.nixosModules.default
+  ];
+
   # Enable the X11 windowing system.
   # You can disable this if you're only using the Wayland session.
   services.xserver.enable = true;
@@ -15,16 +20,18 @@
 
   hardware.graphics.enable = true;
 
-  # Login manager - SDDM with Catppuccin Mocha theme
-  services.displayManager.sddm = {
+  # Noctalia Greeter - replaces SDDM
+  services.displayManager.noctalia-greeter = {
     enable = true;
-    theme = "catppuccin-mocha";
+    settings = {
+      cursor = {
+        theme = "Bibata-Modern-Ice";
+        size = 24;
+      };
+      keyboard.layout = "us";
+    };
+    cursorTheme.package = pkgs.bibata-cursors;
   };
-
-  # Catppuccin SDDM theme
-  environment.systemPackages = with pkgs; [
-    catppuccin-sddm
-  ];
 
   # Enable the COSMIC login manager / desktop environment
   # services.displayManager.cosmic-greeter.enable = true;
@@ -72,17 +79,22 @@
   # home.pointerCursor, and nwg-look is gone entirely — it was a GUI for editing
   # GTK settings by hand, which the `gtk` module now does declaratively.
 
-  # Binary cache for the llm-agents.nix packages installed in the home desktop
-  # profile. Without this every agent is built from source against their pinned
-  # nixpkgs-unstable, which is slow and pointless — they push daily CI builds.
-  #
-  # `extra-*` rather than plain `substituters`/`trusted-public-keys`, which would
-  # replace cache.nixos.org instead of appending to it.
+  # Binary caches
   nix.settings = {
-    extra-substituters = [ "https://cache.numtide.com" ];
+    extra-substituters = [
+      "https://cache.numtide.com"
+      "https://noctalia.cachix.org"
+    ];
     extra-trusted-public-keys = [
       "niks3.numtide.com-1:DTx8wZduET09hRmMtKdQDxNNthLQETkc/yaX7M4qK0g="
+      "noctalia.cachix.org-1:pCOR47nnMEo5thcxNDtzWpOxNFQsBRglJzxWPp3dkU4="
     ];
+  };
+
+  # Noctalia - Wayland session launcher
+  programs.noctalia = {
+    enable = true;
+    recommendedServices.enable = true;
   };
 
   programs._1password-gui = {

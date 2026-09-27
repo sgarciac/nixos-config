@@ -22,12 +22,15 @@ let
   # hardcoding the filename under $out/share/backgrounds/nixos/.
   wallpaper = pkgs.nixos-artwork.wallpapers.simple-dark-gray.gnomeFilePath;
 in
+
 {
   imports = [
     # Enables wayland.windowManager.hyprland and generates hyprland.lua
     ../modules/hyprland.nix
     # Emacs with packages - user manages .emacs.d, nix provides packages
     ../modules/emacs.nix
+    # Noctalia - Wayland session launcher configuration
+    inputs.noctalia.homeModules.default
   ];
 
   #-------------------------------------------------------------------
@@ -43,11 +46,15 @@ in
   home.packages = with pkgs; [
     kdePackages.dolphin # SUPER + E (fileManager)
 
+    # Hardware control (fallback if Noctalia doesn't work)
     brightnessctl # XF86MonBrightness{Up,Down}
     playerctl # XF86Audio{Next,Prev,Play,Pause}
 
     kdePackages.kate
-    #  thunderbird
+
+    # Additional tools from CachyOS config
+    hyprpicker # Color picker (SUPER + P)
+    gnome-calculator # Calculator (SUPER + SHIFT + C, XF86Calculator)
   ]
   ++ [
     # LLM coding agents. Add more by name — `nix flake show github:numtide/llm-agents.nix`
@@ -259,6 +266,48 @@ in
   # '';
 
   #-------------------------------------------------------------------
+  # Noctalia - Wayland session launcher
+  #-------------------------------------------------------------------
+
+  programs.noctalia = {
+    enable = true;
+    systemd.enable = true;
+
+    settings = {
+      theme = {
+        mode = "dark";
+        source = "wallpaper"; # Generate theme from wallpaper (like CachyOS)
+        wallpaper_scheme = "m3-tonal-spot";
+        # Fallback to Catppuccin if wallpaper extraction fails
+        builtin = "Catppuccin";
+      };
+      # Noctalia handles its own wallpaper
+      wallpaper = {
+        enabled = true;
+        default = {
+          path = ""; # Will use Noctalia's default wallpaper
+        };
+      };
+      # Bar configuration inspired by CachyOS
+      bar = {
+        default = {
+          thickness = 35;
+          radius = 12;
+          scale = 1.10;
+          background_opacity = 1.0;
+          start = [ "launcher" "clock" ];
+          center = [ "workspaces" "active_window" ];
+          end = [ "media" "tray" "notifications" "network" "volume" "session" ];
+        };
+      };
+      # System monitoring
+      system.monitor = {
+        gpu_poll_seconds = 2;
+      };
+    };
+  };
+
+  #-------------------------------------------------------------------
   # Session services
   #-------------------------------------------------------------------
 
@@ -267,16 +316,10 @@ in
   # tray module (configured below) to be visible.
   services.network-manager-applet.enable = true;
 
-  # Wallpaper daemon. Owns hypr/hyprpaper.conf and a systemd user service, which
-  # is why hyprpaper is no longer launched from the hyprland.start hook.
+  # Wallpaper is now handled by Noctalia itself, so hyprpaper is disabled.
+  # This avoids conflicts between hyprpaper and Noctalia's wallpaper system.
   services.hyprpaper = {
-    enable = true;
-    settings = {
-      splash = false;
-      preload = [ wallpaper ];
-      # "<monitor>,<path>"; an empty monitor field means every output.
-      wallpaper = [ ",${wallpaper}" ];
-    };
+    enable = false;
   };
 
   # Screen locker, driven by hypridle below. `path = "screenshot"` blurs whatever
@@ -354,126 +397,12 @@ in
   };
 
   #-------------------------------------------------------------------
-  # Bar
+  # Bar (disabled - Noctalia provides its own bar)
   #-------------------------------------------------------------------
 
-  # Managed here rather than via programs.waybar.enable on the NixOS side so that
-  # a single place owns the package, the config and the service. systemd.enable
-  # gives a unit with ConditionEnvironment=WAYLAND_DISPLAY and an
-  # X-Reload-Triggers on the config, so edits reload the bar on switch.
+  # Waybar is disabled because Noctalia includes its own built-in bar/panel.
+  # Noctalia handles workspaces, window info, system tray, clock, etc.
   programs.waybar = {
-    enable = true;
-    systemd.enable = true;
-
-    settings.mainBar = {
-      layer = "top";
-      position = "top";
-      height = 30;
-      spacing = 8;
-
-      modules-left = [
-        "hyprland/workspaces"
-        "hyprland/submap"
-      ];
-      modules-center = [ "hyprland/window" ];
-      modules-right = [
-        "pulseaudio"
-        "backlight"
-        "battery"
-        "network"
-        "tray"
-        "clock"
-      ];
-
-      "hyprland/workspaces".on-click = "activate";
-      "hyprland/window" = {
-        max-length = 60;
-        separate-outputs = true;
-      };
-
-      # Plain text labels rather than nerd-font glyphs, so the bar is readable
-      # before you start tuning it. You have FiraCode and DroidSansMono Nerd Font
-      # installed (see fonts.packages) if you'd rather swap in icons.
-      pulseaudio = {
-        format = "vol {volume}%";
-        format-muted = "muted";
-        on-click = "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle";
-      };
-
-      # No `device` set — waybar autodetects, which differs between the two
-      # machines. Only meaningful on the thinkpad.
-      backlight.format = "bright {percent}%";
-
-      battery = {
-        states = {
-          warning = 30;
-          critical = 15;
-        };
-        format = "bat {capacity}%";
-        format-charging = "chg {capacity}%";
-        format-plugged = "ac {capacity}%";
-      };
-
-      network = {
-        format-wifi = "{essid} {signalStrength}%";
-        format-ethernet = "eth";
-        format-disconnected = "offline";
-        tooltip-format = "{ifname}: {ipaddr}";
-      };
-
-      clock = {
-        format = "{:%a %d %b  %H:%M}";
-        tooltip-format = "<tt><small>{calendar}</small></tt>";
-      };
-
-      tray.spacing = 10;
-    };
-
-    style = ''
-      * {
-        font-family: "FiraCode Nerd Font", monospace;
-        font-size: 12px;
-        border: none;
-        border-radius: 0;
-      }
-
-      window#waybar {
-        background: rgba(26, 26, 26, 0.9);
-        color: #e6e6e6;
-      }
-
-      #workspaces button {
-        padding: 0 8px;
-        background: transparent;
-        color: #888888;
-      }
-
-      /* accents match the hyprland active-border gradient */
-      #workspaces button.active {
-        color: #33ccff;
-        box-shadow: inset 0 -2px #33ccff;
-      }
-
-      #workspaces button.urgent {
-        color: #00ff99;
-      }
-
-      #clock,
-      #battery,
-      #backlight,
-      #network,
-      #pulseaudio,
-      #tray {
-        padding: 0 10px;
-      }
-
-      #battery.warning {
-        color: #ffcc00;
-      }
-
-      #battery.critical {
-        color: #ff5555;
-      }
-    '';
+    enable = false;
   };
 }

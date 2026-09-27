@@ -10,8 +10,12 @@ let
   # Set programs that you use
   terminal = "kitty";
   fileManager = "dolphin";
-  # Configured (and installed) by programs.fuzzel in ../profiles/desktop.nix
-  menu = "fuzzel";
+  editor = "kate";
+  calculator = "gnome-calculator";
+  browser = "firefox";
+
+  # Noctalia command prefix
+  noctalia = "noctalia msg ";
 
   # Sets "Windows" key as main modifier
   mainMod = "SUPER";
@@ -22,6 +26,9 @@ let
 
   # hl.dsp.exec_cmd("<cmd>")
   exec = cmd: ''hl.dsp.exec_cmd(${builtins.toJSON cmd})'';
+
+  # Call Noctalia command
+  noct = cmd: exec (noctalia + cmd);
 
   # hl.bind("<key>", <dispatcher>)
   mkBind = key: dispatcher: { _args = [ key (mkLuaInline dispatcher) ]; };
@@ -86,21 +93,7 @@ in
       #
       # Autostart necessary processes (like notifications daemons, status bars,
       # etc.) Or execute your favorite apps at launch like this:
-      on = {
-        _args = [
-          "hyprland.start"
-          (mkLuaInline ''
-            function()
-              hl.exec_cmd(${builtins.toJSON terminal})
-              -- waybar, hyprpaper and nm-applet are NOT started here. All three
-              -- are systemd user services managed by home-manager
-              -- (programs.waybar.systemd.enable, services.hyprpaper,
-              -- services.network-manager-applet), already bound to the session
-              -- target. Launching them here too would give you two of each.
-              hl.exec_cmd("firefox")
-            end'')
-        ];
-      };
+
 
       #-------------------------------
       #---- ENVIRONMENT VARIABLES ----
@@ -365,28 +358,65 @@ in
       #---- KEYBINDINGS ----
       #---------------------
 
-      # Example binds, see https://wiki.hypr.land/Configuring/Basics/Binds/ for more
+      # Keybindings inspired by CachyOS Hypr/Noctalia configuration
+      # See https://wiki.hypr.land/Configuring/Basics/Binds/ for more
       bind = [
+        # --- Window Management ---
+        (mkBind "${mainMod} + Escape" (exec "hyprctl kill"))
         (mkBind "${mainMod} + Q" (exec terminal))
+        (mkBind "${mainMod} + ALT + Space" ''hl.dsp.window.float({ action = "toggle" })'')
         (mkBind "${mainMod} + C" "hl.dsp.window.close()")
-        (mkBind "${mainMod} + M" (exec "command -v hyprshutdown >/dev/null 2>&1 && hyprshutdown || hyprctl dispatch 'hl.dsp.exit()'"))
-        (mkBind "${mainMod} + E" (exec fileManager))
-        (mkBind "${mainMod} + V" ''hl.dsp.window.float({ action = "toggle" })'')
-        (mkBind "${mainMod} + R" (exec menu))
-        (mkBind "${mainMod} + P" "hl.dsp.window.pseudo()")
-        (mkBind "${mainMod} + J" ''hl.dsp.layout("togglesplit")'') # dwindle only
+        (mkBind "${mainMod} + D" ''hl.dsp.window.fullscreen({ mode = 1 })'')
+        (mkBind "${mainMod} + F" "hl.dsp.window.fullscreen()")
+        (mkBind "${mainMod} + J" ''hl.dsp.layout("togglesplit")'')
 
         # Move focus with mainMod + arrow keys
-        (mkBind "${mainMod} + left" ''hl.dsp.focus({ direction = "left" })'')
-        (mkBind "${mainMod} + right" ''hl.dsp.focus({ direction = "right" })'')
-        (mkBind "${mainMod} + up" ''hl.dsp.focus({ direction = "up" })'')
-        (mkBind "${mainMod} + down" ''hl.dsp.focus({ direction = "down" })'')
+        (mkBind "${mainMod} + Left" ''hl.dsp.focus({ direction = "left" })'')
+        (mkBind "${mainMod} + Right" ''hl.dsp.focus({ direction = "right" })'')
+        (mkBind "${mainMod} + Up" ''hl.dsp.focus({ direction = "up" })'')
+        (mkBind "${mainMod} + Down" ''hl.dsp.focus({ direction = "down" })'')
+
+        # Alt+Tab to cycle windows
+        (mkBind "ALT + Tab" "hl.dsp.window.cycle_next()")
+        (mkBind "${mainMod} + Tab" (noct "window-switcher"))
+
+        # --- Launchers & Panels (Noctalia) ---
+        (mkBind "${mainMod} + Return" (exec terminal))
+        (mkBind "${mainMod} + E" (exec fileManager))
+        (mkBind "${mainMod} + T" (exec editor))
+        (mkBind "${mainMod} + SHIFT + C" (exec calculator))
+        (mkBind "${mainMod} + W" (exec browser))
+        (mkBind "XF86Calculator" (exec calculator))
+
+        # Noctalia panels
+        (mkBind "${mainMod} + Z" (noct "settings-toggle"))
+        (mkBind "${mainMod} + X" (noct "panel-toggle control-center"))
+        (mkBind "${mainMod} + Space" (noct "panel-toggle launcher"))
+        (mkBind "${mainMod} + period" (noct "panel-toggle launcher /emo"))
+        (mkBind "${mainMod} + L" (noct "session lock"))
+        (mkBind "${mainMod} + ALT + C" (noct "panel-toggle session"))
+
+        # --- Screenshot & Color Picker ---
+        (mkBind "${mainMod} + P" (exec "hyprpicker -a -n"))
+        (mkBind "Print" (noct "screenshot-region"))
+        (mkBind "${mainMod} + Print" (noct "screenshot-fullscreen"))
+
+        # --- Noctalia panels & utilities ---
+        (mkBind "${mainMod} + SHIFT + W" (noct "panel-toggle wallpaper"))
+        (mkBind "${mainMod} + V" (noct "panel-toggle clipboard"))
+        (mkBind "${mainMod} + A" (noct "panel-toggle control-center notifications"))
       ]
       ++ workspaceBinds
       ++ [
-        # Example special workspace (scratchpad)
-        (mkBind "${mainMod} + S" ''hl.dsp.workspace.toggle_special("magic")'')
-        (mkBind "${mainMod} + SHIFT + S" ''hl.dsp.window.move({ workspace = "special:magic" })'')
+        # --- Special Workspace (scratchpad) ---
+        (mkBind "${mainMod} + S" ''hl.dsp.workspace.toggle_special()'')
+        (mkBind "${mainMod} + SHIFT + S" ''hl.dsp.window.move({ workspace = "special" })'')
+
+        # --- Move Windows ---
+        (mkBind "${mainMod} + SHIFT + Up" ''hl.dsp.window.move({ direction = "u" })'')
+        (mkBind "${mainMod} + SHIFT + Down" ''hl.dsp.window.move({ direction = "d" })'')
+        (mkBind "${mainMod} + SHIFT + Left" ''hl.dsp.window.move({ direction = "l" })'')
+        (mkBind "${mainMod} + SHIFT + Right" ''hl.dsp.window.move({ direction = "r" })'')
 
         # Scroll through existing workspaces with mainMod + scroll
         (mkBind "${mainMod} + mouse_down" ''hl.dsp.focus({ workspace = "e+1" })'')
@@ -396,34 +426,36 @@ in
         (mkMouseBind "${mainMod} + mouse:272" "hl.dsp.window.drag()")
         (mkMouseBind "${mainMod} + mouse:273" "hl.dsp.window.resize()")
 
-        # Laptop multimedia keys for volume and LCD brightness
-        (mkLockedRepeatBind "XF86AudioRaiseVolume" (exec "wpctl set-volume -l 1 @DEFAULT_AUDIO_SINK@ 5%+"))
-        (mkLockedRepeatBind "XF86AudioLowerVolume" (exec "wpctl set-volume @DEFAULT_AUDIO_SINK@ 5%-"))
-        (mkLockedRepeatBind "XF86AudioMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"))
-        (mkLockedRepeatBind "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"))
-        (mkLockedRepeatBind "XF86MonBrightnessUp" (exec "brightnessctl -e4 -n2 set 5%+"))
-        (mkLockedRepeatBind "XF86MonBrightnessDown" (exec "brightnessctl -e4 -n2 set 5%-"))
+        # --- Hardware Controls (Noctalia) ---
+        # Audio
+        (mkLockedRepeatBind "XF86AudioRaiseVolume" (noct "volume-up"))
+        (mkLockedRepeatBind "XF86AudioLowerVolume" (noct "volume-down"))
+        (mkLockedRepeatBind "XF86AudioMute" (noct "volume-mute"))
+        (mkLockedRepeatBind "XF86AudioMicMute" (noct "mic-mute"))
 
-        # Requires playerctl
-        (mkLockedBind "XF86AudioNext" (exec "playerctl next"))
-        (mkLockedBind "XF86AudioPause" (exec "playerctl play-pause"))
-        (mkLockedBind "XF86AudioPlay" (exec "playerctl play-pause"))
-        (mkLockedBind "XF86AudioPrev" (exec "playerctl previous"))
+        # Media
+        (mkLockedBind "XF86AudioPlay" (noct "media toggle"))
+        (mkLockedBind "XF86AudioPause" (noct "media toggle"))
+        (mkLockedBind "XF86AudioNext" (noct "media next"))
+        (mkLockedBind "XF86AudioPrev" (noct "media previous"))
 
-        # Clipboard: copy/paste with SUPER + Shift
-        (mkBind "${mainMod} + SHIFT + C" (exec "wl-copy"))
-        (mkBind "${mainMod} + SHIFT + V" (exec "wl-paste"))
+        # Brightness
+        (mkLockedRepeatBind "XF86MonBrightnessUp" (noct "brightness-up"))
+        (mkLockedRepeatBind "XF86MonBrightnessDown" (noct "brightness-down"))
       ];
 
       #---------------
       #--- GESTURES --
       #---------------
 
-      gesture = {
-        fingers = 3;
-        direction = "horizontal";
-        action = "workspace";
-      };
+      # 4-finger horizontal swipe: switch workspace
+      # 3-finger swipe: window actions (close, fullscreen, float)
+      gesture = [
+        { fingers = 4; direction = "horizontal"; action = "workspace"; }
+        { fingers = 3; direction = "down";       action = "close"; }
+        { fingers = 3; direction = "up";          action = "fullscreen"; }
+        { fingers = 3; direction = "left";       action = "float"; }
+      ];
 
       # Example per-device config
       # See https://wiki.hypr.land/Configuring/Advanced-and-Cool/Devices/ for more
@@ -439,13 +471,12 @@ in
       # See https://wiki.hypr.land/Configuring/Basics/Window-Rules/
       # and https://wiki.hypr.land/Configuring/Basics/Workspace-Rules/
 
-      # Example window rules that are useful
+      # Window rules
       window_rule = [
         {
-          # Ignore maximize requests from all apps. You'll probably like this.
+          # Ignore maximize requests from all apps
           name = "suppress-maximize-events";
           match.class = ".*";
-
           suppress_event = "maximize";
         }
         {
@@ -459,26 +490,50 @@ in
             fullscreen = false;
             pin = false;
           };
-
           no_focus = true;
         }
-        # Hyprland-run windowrule
-        {
-          name = "move-hyprland-run";
-          match.class = "hyprland-run";
 
-          move = "20 monitor_h-120";
+        # Picture-in-Picture for video players
+        {
+          name = "picture-in-picture";
+          match.title = "^([Pp]icture[-\s]?[Ii]n[-\s]?[Pp]icture)(.*)$";
           float = true;
+          keep_aspect_ratio = true;
+          size = [ "max(monitor_w, monitor_h)*0.25" "min(monitor_w, monitor_h)*0.25" ];
+          pin = true;
         }
 
-        # "Smart gaps" companions to the workspace_rule entries above
-        # { name = "no-gaps-wtv1"; match = { float = false; workspace = "w[tv1]"; }; border_size = 0; rounding = 0; }
-        # { name = "no-gaps-f1";   match = { float = false; workspace = "f[1]"; };   border_size = 0; rounding = 0; }
+        # Float utility windows
+        { name = "float-utilities"; match.class = "^(kvantummanager|qt[56]ct|nwg-look)$"; float = true; }
+        { name = "float-system"; match.class = "^(org\.pulseaudio\.pavucontrol|blueman-manager|nm-applet|nm-connection-editor)$"; float = true; }
+        { name = "float-modals"; match.title = "^(Winetricks.*|Protontricks.*)$"; float = true; }
+
+        # Float common modals (file dialogs, etc.)
+        {
+          name = "float-modals";
+          match.title = "^(Open|Authentication Required|Add Folder to Workspace|Choose Files|Save As|Confirm to replace files|File Operation Progress)$";
+          float = true;
+        }
+        {
+          name = "float-dialogs";
+          match.class = "^([Xx]dg-desktop-portal-gtk)$";
+          float = true;
+        }
+        { name = "float-xdg"; match.title = "^(File Upload|Choose wallpaper|Library)(.*)$"; float = true; }
+        { name = "float-dialogs-class"; match.class = "^(.*dialog.*)$"; float = true; }
       ];
 
-      # layer_rule = [
-      #   { name = "no-anim-overlay"; match.namespace = "^my-overlay$"; no_anim = true; }
-      # ];
+      # Noctalia layer rules - proper blur/animation handling
+      layer_rule = [
+        {
+          name = "noctalia-blur";
+          match.namespace = "^noctalia-(bar-.+|notification|dock|panel|attached-panel|osd|window-switcher)$";
+          no_anim = true;
+          ignore_alpha = 0.5;
+          blur = true;
+          blur_popups = true;
+        }
+      ];
     };
   };
 }
