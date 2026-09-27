@@ -55,6 +55,9 @@ in
     # Additional tools from CachyOS config
     hyprpicker # Color picker (SUPER + P)
     gnome-calculator # Calculator (SUPER + SHIFT + C, XF86Calculator)
+
+    # Wallpapers for Noctalia
+    kdePackages.plasma-workspace-wallpapers
   ]
   ++ [
     # LLM coding agents. Add more by name — `nix flake show github:numtide/llm-agents.nix`
@@ -284,8 +287,22 @@ in
       # Noctalia handles its own wallpaper
       wallpaper = {
         enabled = true;
+        fill_mode = "crop";  # center | crop | fit | stretch | repeat | span
+        edge_smoothness = 0.5;  # Smooth wallpaper edges
+        transition = [ "fade" "zoom" ];  # Animated transitions
+        transition_duration = 1500;  # 1.5 second transition
+        # Directory with multiple wallpapers for automation
+        directory = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/MilkyWay/contents/images";
+        # Cool wallpaper from plasma workspace
         default = {
-          path = ""; # Will use Noctalia's default wallpaper
+          path = "${pkgs.kdePackages.plasma-workspace-wallpapers}/share/wallpapers/MilkyWay/contents/images/5120x2880.png";
+        };
+        # Enable wallpaper automation to cycle through wallpapers
+        automation = {
+          enabled = true;
+          interval_seconds = 300;  # Change every 5 minutes
+          order = "random";
+          recursive = true;
         };
       };
       # Bar configuration inspired by CachyOS
