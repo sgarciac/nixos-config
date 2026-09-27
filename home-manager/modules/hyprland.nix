@@ -38,6 +38,24 @@ let
     _args = [ key (mkLuaInline dispatcher) flags ];
   };
 
+  # bind with description (uses `d` flag): hl.bind("<key>", <dispatcher>, { flags, description = "..." })
+  mkBindDesc = key: dispatcher: desc: { _args = [ key (mkLuaInline dispatcher) { flags = "d"; description = desc; } ]; };
+
+  # mouse bind with description
+  mkMouseBindDesc = key: dispatcher: desc: {
+    _args = [ key (mkLuaInline dispatcher) { flags = "d"; description = desc; mouse = true; } ];
+  };
+
+  # locked repeat bind with description
+  mkLockedRepeatBindDesc = key: dispatcher: desc: {
+    _args = [ key (mkLuaInline dispatcher) { flags = "d"; description = desc; locked = true; repeating = true; } ];
+  };
+
+  # locked bind with description
+  mkLockedBindDesc = key: dispatcher: desc: {
+    _args = [ key (mkLuaInline dispatcher) { flags = "d"; description = desc; locked = true; } ];
+  };
+
   mkMouseBind = mkBindWith { mouse = true; };
   mkLockedBind = mkBindWith { locked = true; };
   mkLockedRepeatBind = mkBindWith {
@@ -354,94 +372,95 @@ in
       #   { workspace = "f[1]";   gaps_out = 0; gaps_in = 0; }
       # ];
 
-      #---------------------
-      #---- KEYBINDINGS ----
-      #---------------------
-
-      # Keybindings inspired by CachyOS Hypr/Noctalia configuration
-      # See https://wiki.hypr.land/Configuring/Basics/Binds/ for more
+      # ═══════════════════════════════════════════════════════════════════════════════
+      # KEYBINDINGS
+      # Descriptions shown via `hyprctl binds`
+      # See https://wiki.hypr.land/Configuring/Basics/Binds/
+      # ═══════════════════════════════════════════════════════════════════════════════
       bind = [
-        # --- Window Management ---
-        (mkBind "${mainMod} + Escape" (exec "hyprctl kill"))
-        (mkBind "${mainMod} + Q" (exec terminal))
-        (mkBind "${mainMod} + ALT + Space" ''hl.dsp.window.float({ action = "toggle" })'')
-        (mkBind "${mainMod} + C" "hl.dsp.window.close()")
-        (mkBind "${mainMod} + D" ''hl.dsp.window.fullscreen({ mode = 1 })'')
-        (mkBind "${mainMod} + F" "hl.dsp.window.fullscreen()")
-        (mkBind "${mainMod} + J" ''hl.dsp.layout("togglesplit")'')
+        # ── Kill & Close ──────────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + Escape" (exec "hyprctl kill") "Force close window")
+        (mkBindDesc "${mainMod} + C" "hl.dsp.window.close()" "Close window")
 
-        # Move focus with mainMod + arrow keys
-        (mkBind "${mainMod} + Left" ''hl.dsp.focus({ direction = "left" })'')
-        (mkBind "${mainMod} + Right" ''hl.dsp.focus({ direction = "right" })'')
-        (mkBind "${mainMod} + Up" ''hl.dsp.focus({ direction = "up" })'')
-        (mkBind "${mainMod} + Down" ''hl.dsp.focus({ direction = "down" })'')
+        # ── Launchers ───────────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + Return" (exec terminal) "Launch terminal")
+        (mkBindDesc "${mainMod} + Q" (exec terminal) "Launch terminal (alt)")
+        (mkBindDesc "${mainMod} + E" (exec fileManager) "Launch file manager")
+        (mkBindDesc "${mainMod} + T" (exec editor) "Launch text editor")
+        (mkBindDesc "${mainMod} + W" (exec browser) "Launch browser")
+        (mkBindDesc "${mainMod} + SHIFT + C" (exec calculator) "Launch calculator")
+        (mkBindDesc "XF86Calculator" (exec calculator) "Calculator key")
 
-        # Alt+Tab to cycle windows
-        (mkBind "ALT + Tab" "hl.dsp.window.cycle_next()")
-        (mkBind "${mainMod} + Tab" (noct "window-switcher"))
+        # ── Window Management ───────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + F" "hl.dsp.window.fullscreen()" "Toggle fullscreen")
+        (mkBindDesc "${mainMod} + D" ''hl.dsp.window.fullscreen({ mode = 1 })'' "Fullscreen (no gaps)")
+        (mkBindDesc "${mainMod} + ALT + Space" ''hl.dsp.window.float({ action = "toggle" })'' "Toggle float")
+        (mkBindDesc "${mainMod} + J" ''hl.dsp.layout("togglesplit")'' "Toggle split")
 
-        # --- Launchers & Panels (Noctalia) ---
-        (mkBind "${mainMod} + Return" (exec terminal))
-        (mkBind "${mainMod} + E" (exec fileManager))
-        (mkBind "${mainMod} + T" (exec editor))
-        (mkBind "${mainMod} + SHIFT + C" (exec calculator))
-        (mkBind "${mainMod} + W" (exec browser))
-        (mkBind "XF86Calculator" (exec calculator))
+        # ── Focus Navigation ────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + Left" ''hl.dsp.focus({ direction = "left" })'' "Focus left")
+        (mkBindDesc "${mainMod} + Right" ''hl.dsp.focus({ direction = "right" })'' "Focus right")
+        (mkBindDesc "${mainMod} + Up" ''hl.dsp.focus({ direction = "up" })'' "Focus up")
+        (mkBindDesc "${mainMod} + Down" ''hl.dsp.focus({ direction = "down" })'' "Focus down")
 
-        # Noctalia panels
-        (mkBind "${mainMod} + Z" (noct "settings-toggle"))
-        (mkBind "${mainMod} + X" (noct "panel-toggle control-center"))
-        (mkBind "${mainMod} + Space" (noct "panel-toggle launcher"))
-        (mkBind "${mainMod} + period" (noct "panel-toggle launcher /emo"))
-        (mkBind "${mainMod} + L" (noct "session lock"))
-        (mkBind "${mainMod} + ALT + C" (noct "panel-toggle session"))
+        # ── Window Cycling ───────────────────────────────────────────────────────
+        (mkBindDesc "ALT + Tab" "hl.dsp.window.cycle_next()" "Cycle windows")
+        (mkBindDesc "${mainMod} + Tab" (noct "window-switcher") "Noctalia window switcher")
 
-        # --- Screenshot & Color Picker ---
-        (mkBind "${mainMod} + P" (exec "hyprpicker -a -n"))
-        (mkBind "Print" (noct "screenshot-region"))
-        (mkBind "${mainMod} + Print" (noct "screenshot-fullscreen"))
+        # ── Noctalia Panels ─────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + F1" (noct "panel-toggle kenn/keybind-cheatsheet:cheatsheet") "Keybindings cheatsheet")
+        (mkBindDesc "${mainMod} + Space" (noct "panel-toggle launcher") "App launcher")
+        (mkBindDesc "${mainMod} + period" (noct "panel-toggle launcher /emo") "Emoji picker")
+        (mkBindDesc "${mainMod} + X" (noct "panel-toggle control-center") "Control center")
+        (mkBindDesc "${mainMod} + A" (noct "panel-toggle control-center notifications") "Notifications panel")
+        (mkBindDesc "${mainMod} + V" (noct "panel-toggle clipboard") "Clipboard history")
+        (mkBindDesc "${mainMod} + SHIFT + W" (noct "panel-toggle wallpaper") "Wallpaper picker")
+        (mkBindDesc "${mainMod} + Z" (noct "settings-toggle") "Settings panel")
+        (mkBindDesc "${mainMod} + ALT + C" (noct "panel-toggle session") "Session menu")
 
-        # --- Noctalia panels & utilities ---
-        (mkBind "${mainMod} + SHIFT + W" (noct "panel-toggle wallpaper"))
-        (mkBind "${mainMod} + V" (noct "panel-toggle clipboard"))
-        (mkBind "${mainMod} + A" (noct "panel-toggle control-center notifications"))
+        # ── Session Controls ────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + L" (noct "session lock") "Lock screen")
+
+        # ── Screenshots ────────────────────────────────────────────────────────
+        (mkBindDesc "Print" (noct "screenshot-region") "Screenshot region")
+        (mkBindDesc "${mainMod} + Print" (noct "screenshot-fullscreen") "Screenshot fullscreen")
+        (mkBindDesc "${mainMod} + P" (exec "hyprpicker -a -n") "Color picker")
       ]
       ++ workspaceBinds
       ++ [
-        # --- Special Workspace (scratchpad) ---
-        (mkBind "${mainMod} + S" ''hl.dsp.workspace.toggle_special()'')
-        (mkBind "${mainMod} + SHIFT + S" ''hl.dsp.window.move({ workspace = "special" })'')
+        # ── Special Workspace (Scratchpad) ──────────────────────────────────────
+        (mkBindDesc "${mainMod} + S" ''hl.dsp.workspace.toggle_special()'' "Toggle scratchpad")
+        (mkBindDesc "${mainMod} + SHIFT + S" ''hl.dsp.window.move({ workspace = "special" })'' "Move to scratchpad")
 
-        # --- Move Windows ---
-        (mkBind "${mainMod} + SHIFT + Up" ''hl.dsp.window.move({ direction = "u" })'')
-        (mkBind "${mainMod} + SHIFT + Down" ''hl.dsp.window.move({ direction = "d" })'')
-        (mkBind "${mainMod} + SHIFT + Left" ''hl.dsp.window.move({ direction = "l" })'')
-        (mkBind "${mainMod} + SHIFT + Right" ''hl.dsp.window.move({ direction = "r" })'')
+        # ── Window Movement ──────────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + SHIFT + Up" ''hl.dsp.window.move({ direction = "u" })'' "Move window up")
+        (mkBindDesc "${mainMod} + SHIFT + Down" ''hl.dsp.window.move({ direction = "d" })'' "Move window down")
+        (mkBindDesc "${mainMod} + SHIFT + Left" ''hl.dsp.window.move({ direction = "l" })'' "Move window left")
+        (mkBindDesc "${mainMod} + SHIFT + Right" ''hl.dsp.window.move({ direction = "r" })'' "Move window right")
 
-        # Scroll through existing workspaces with mainMod + scroll
-        (mkBind "${mainMod} + mouse_down" ''hl.dsp.focus({ workspace = "e+1" })'')
-        (mkBind "${mainMod} + mouse_up" ''hl.dsp.focus({ workspace = "e-1" })'')
+        # ── Workspace Navigation ─────────────────────────────────────────────────
+        (mkBindDesc "${mainMod} + mouse_down" ''hl.dsp.focus({ workspace = "e+1" })'' "Next workspace")
+        (mkBindDesc "${mainMod} + mouse_up" ''hl.dsp.focus({ workspace = "e-1" })'' "Previous workspace")
 
-        # Move/resize windows with mainMod + LMB/RMB and dragging
-        (mkMouseBind "${mainMod} + mouse:272" "hl.dsp.window.drag()")
-        (mkMouseBind "${mainMod} + mouse:273" "hl.dsp.window.resize()")
+        # ── Window Dragging & Resizing ──────────────────────────────────────────
+        (mkMouseBindDesc "${mainMod} + mouse:272" "hl.dsp.window.drag()" "Drag window")
+        (mkMouseBindDesc "${mainMod} + mouse:273" "hl.dsp.window.resize()" "Resize window")
 
-        # --- Hardware Controls (Noctalia) ---
-        # Audio
-        (mkLockedRepeatBind "XF86AudioRaiseVolume" (noct "volume-up"))
-        (mkLockedRepeatBind "XF86AudioLowerVolume" (noct "volume-down"))
-        (mkLockedRepeatBind "XF86AudioMute" (noct "volume-mute"))
-        (mkLockedRepeatBind "XF86AudioMicMute" (noct "mic-mute"))
+        # ── Volume Controls ─────────────────────────────────────────────────────
+        (mkLockedRepeatBindDesc "XF86AudioRaiseVolume" (noct "volume-up") "Volume up")
+        (mkLockedRepeatBindDesc "XF86AudioLowerVolume" (noct "volume-down") "Volume down")
+        (mkLockedRepeatBindDesc "XF86AudioMute" (noct "volume-mute") "Mute audio")
+        (mkLockedRepeatBindDesc "XF86AudioMicMute" (noct "mic-mute") "Mute microphone")
 
-        # Media
-        (mkLockedBind "XF86AudioPlay" (noct "media toggle"))
-        (mkLockedBind "XF86AudioPause" (noct "media toggle"))
-        (mkLockedBind "XF86AudioNext" (noct "media next"))
-        (mkLockedBind "XF86AudioPrev" (noct "media previous"))
+        # ── Media Controls ──────────────────────────────────────────────────────
+        (mkLockedBindDesc "XF86AudioPlay" (noct "media toggle") "Play/Pause")
+        (mkLockedBindDesc "XF86AudioPause" (noct "media toggle") "Play/Pause (alt)")
+        (mkLockedBindDesc "XF86AudioNext" (noct "media next") "Next track")
+        (mkLockedBindDesc "XF86AudioPrev" (noct "media previous") "Previous track")
 
-        # Brightness
-        (mkLockedRepeatBind "XF86MonBrightnessUp" (noct "brightness-up"))
-        (mkLockedRepeatBind "XF86MonBrightnessDown" (noct "brightness-down"))
+        # ── Brightness Controls ─────────────────────────────────────────────────
+        (mkLockedRepeatBindDesc "XF86MonBrightnessUp" (noct "brightness-up") "Brightness up")
+        (mkLockedRepeatBindDesc "XF86MonBrightnessDown" (noct "brightness-down") "Brightness down")
       ];
 
       #---------------
