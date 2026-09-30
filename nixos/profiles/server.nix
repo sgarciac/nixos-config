@@ -14,9 +14,6 @@
 { ... }:
 
 {
-  # Google DNS
-  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
-
   # Enable the OpenSSH daemon.
   services.openssh = {
     enable = true;

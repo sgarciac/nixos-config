@@ -68,6 +68,9 @@
   # Enable networking
   networking.networkmanager.enable = true;
 
+  # Google DNS
+  networking.nameservers = [ "8.8.8.8" "8.8.4.4" ];
+
   # fonts
   fonts.packages = with pkgs; [
     nerd-fonts.fira-code
