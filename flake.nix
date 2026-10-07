@@ -4,6 +4,7 @@
   inputs = {
     # Nixpkgs
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
 
     # Home manager
     home-manager.url = "github:nix-community/home-manager/release-26.05";
@@ -17,7 +18,7 @@
   };
 
   outputs =
-    { nixpkgs, ... }@inputs:
+    { nixpkgs, nixpkgs-unstable, ... }@inputs:
     let
       # Each hosts/<name>/ directory is a self-contained NixOS module: it imports
       # its own hardware-configuration.nix plus whichever profiles it needs from
