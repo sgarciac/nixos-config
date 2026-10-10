@@ -24,9 +24,22 @@
       # --- Navigation (extras/base.el) ---
       avy # Quick jump to characters/lines anywhere
       which-key # Popup showing available keybindings
+      project # Project management (built-in since Emacs 28)
 
       # --- Git (extras/dev.el) ---
       magit # Git interface (best in the universe)
+
+      # --- Language servers ---
+      eglot # LSP client for Emacs
+
+      # --- Lisp development ---
+      sly # Common Lisp IDE for Emacs
+      paredit # Parenthesis editing for Lisp
+
+      # --- Config file modes ---
+      markdown-mode # Markdown editing
+      yaml-mode # YAML editing
+      json-mode # JSON editing
 
       # --- Templates (extras/dev.el) ---
       tempel # Lightweight template library
