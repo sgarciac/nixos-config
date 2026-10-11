@@ -65,6 +65,7 @@ let
 
   # Switch workspaces with mainMod + [0-9]
   # Move active window to a workspace with mainMod + SHIFT + [0-9]
+  # Move window without following with mainMod + CTRL + [0-9] (silent move)
   workspaceBinds = lib.concatMap (
     i:
     let
@@ -74,7 +75,18 @@ let
       (mkBind "${mainMod} + ${key}" "hl.dsp.focus({ workspace = ${toString i} })")
       (mkBind "${mainMod} + SHIFT + ${key}" "hl.dsp.window.move({ workspace = ${toString i} })")
     ]
-  ) (lib.range 1 10);
+  ) (lib.range 1 6);
+
+  # Silent move: throw window to workspace N, stay on current workspace
+  workspaceBindsSilent = lib.concatMap (
+    i:
+    let
+      key = if i == 10 then "0" else toString i;
+    in
+    [
+      (mkBind "${mainMod} + CTRL + ${key}" ''hl.dsp.window.move({ workspace = ${toString i}, follow = false })'')
+    ]
+  ) (lib.range 1 6);
 in
 {
   wayland.windowManager.hyprland = {
@@ -427,6 +439,7 @@ in
         (mkBindDesc "${mainMod} + P" (exec "hyprpicker -a -n") "Color picker")
       ]
       ++ workspaceBinds
+      ++ workspaceBindsSilent
       ++ [
         # ── Special Workspace (Scratchpad) ──────────────────────────────────────
         (mkBindDesc "${mainMod} + S" ''hl.dsp.workspace.toggle_special()'' "Toggle scratchpad")
@@ -439,8 +452,50 @@ in
         (mkBindDesc "${mainMod} + SHIFT + Right" ''hl.dsp.window.move({ direction = "r" })'' "Move window right")
 
         # ── Workspace Navigation ─────────────────────────────────────────────────
-        (mkBindDesc "${mainMod} + mouse_down" ''hl.dsp.focus({ workspace = "e+1" })'' "Next workspace")
-        (mkBindDesc "${mainMod} + mouse_up" ''hl.dsp.focus({ workspace = "e-1" })'' "Previous workspace")
+        #   Empty-aware relative focus (mouse wheel)
+        (mkBindDesc "${mainMod} + mouse_down" ''hl.dsp.focus({ workspace = "e+1" })'' "Next empty workspace")
+        (mkBindDesc "${mainMod} + mouse_up" ''hl.dsp.focus({ workspace = "e-1" })'' "Previous empty workspace")
+
+        #   Relative move (follow): move window one empty workspace over and follow it
+        (mkBindDesc "${mainMod} + SHIFT + mouse_down" ''hl.dsp.window.move({ workspace = "e+1" })'' "Move window → next empty")
+        (mkBindDesc "${mainMod} + SHIFT + mouse_up"   ''hl.dsp.window.move({ workspace = "e-1" })'' "Move window → previous empty")
+
+        #   Relative move (silent): move window one empty workspace over, stay
+        (mkBindDesc "${mainMod} + CTRL + mouse_down" ''hl.dsp.window.move({ workspace = "e+1", follow = false })'' "Move window → next empty (silent)")
+        (mkBindDesc "${mainMod} + CTRL + mouse_up"   ''hl.dsp.window.move({ workspace = "e-1", follow = false })'' "Move window → previous empty (silent)")
+
+        #   Full-cycle (all workspaces, not just empty)
+        (mkBindDesc "${mainMod} + Page_Down" ''hl.dsp.focus({ workspace = "+1" })'' "Next workspace")
+        (mkBindDesc "${mainMod} + Page_Up"   ''hl.dsp.focus({ workspace = "-1" })'' "Previous workspace")
+
+        #   Multi-monitor: move whole workspaces.
+        #   In Hyprland 0.55.4+ `hyprctl dispatch` parses its args as Lua source,
+        #   so the old CLI form (`hyprctl dispatch movecurrentworkspacetomonitor l`)
+        #   fails with a Lua syntax error and silently does nothing. Call the
+        #   Lua API directly instead. `hl.dsp.workspace.move` accepts "+1"/"-1"
+        #   for next/previous monitor, which is layout-agnostic.
+        (mkBindDesc "${mainMod} + SHIFT + comma"  ''hl.dsp.workspace.move({ monitor = "-1" })'' "Workspace → previous monitor")
+        (mkBindDesc "${mainMod} + SHIFT + period" ''hl.dsp.workspace.move({ monitor = "+1" })'' "Workspace → next monitor")
+
+        #   Same fix for swapping whole workspaces between monitors. The
+        #   `swap_monitors` Lua API requires both monitor args to be resolvable,
+        #   so passing literal names ("HDMI-A-1", "DP-1", ...) would not be
+        #   portable. The "current" sentinel anchors the direction arg:
+        #   monitor1 = "current"  + monitor2 = "+1"  means "swap active
+        #   workspace with the one on the next monitor" — works on any host
+        #   without knowing its monitor names. Silently no-ops on hosts with
+        #   only one monitor.
+        (mkBindDesc "${mainMod} + CTRL + SHIFT + comma"  ''hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "-1" })'' "Swap workspaces with previous monitor")
+        (mkBindDesc "${mainMod} + CTRL + SHIFT + period" ''hl.dsp.workspace.swap_monitors({ monitor1 = "current", monitor2 = "+1" })'' "Swap workspaces with next monitor")
+
+        #   Pin / unpin the current window so it shows on every workspace.
+        #   Hyprland 0.55.4's `pin` dispatcher is hardcoded for *windows*, not
+        #   workspaces — the "active workspace" form only exists as a startup
+        #   config option (`workspaceopt = ..., pin: <bool>`), not a runtime
+        #   toggle. So this pins the window, not the workspace.
+        #   Call the Lua API directly (same syntax the CLI dispatcher accepts:
+        #   "<window> <action>", e.g. "active toggle").
+        (mkBindDesc "${mainMod} + SHIFT + P" ''hl.dsp.window.pin("active toggle")'' "Pin/unpin active window")
 
         # ── Window Dragging & Resizing ──────────────────────────────────────────
         (mkMouseBindDesc "${mainMod} + mouse:272" "hl.dsp.window.drag()" "Drag window")
